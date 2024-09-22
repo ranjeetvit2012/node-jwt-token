@@ -36,15 +36,29 @@ app.get('/generate-token', (req, res) => {
 
 app.post("/verify-token",async(req,res)=>{
     try{
-        const {token} = req.body
-        const jwk = {
-          kty: 'RSA',
-          n: 'n0OvCPZN_Hy7h1uCjf1sMSD0Rg54O7czPpIh7Csc5aqU6EfAgO1xCsLKZm-8ilFUjvkua3kkHsVZ-8P-fIcE_8_ZQ19ITWE63H0wqp2FUI2UlsdY1z7TsuMeNjDeN8bh_6qaWVJx6O3Wll_OmnQj5VZLIYJpB77Vyzp-9G4oCrJRbjHXpB-2CH7zQQ38x5IBfJ4MvVrhxPC76YhVnumqXbrGnr4tso37S-kpdyygIDUYQa4sBqwbRHlu2xNImornVcqAua9JF0gOF9cicd99wvN3t0dCZUwE44v-jwMXPVcqZrvrezGipCSkNfB6O-4s6TQrztVy1CN5PHML6f5F3w',
-          e: 'AQAB'
+      try{
+        if(req.headers.authorization && req.headers.authorization.split(' ')[0] === 'Bearer'){
+            const token = req.headers.authorization.split(' ')[1];
+            const jwk = {
+              kty: 'RSA',
+              n: 'n0OvCPZN_Hy7h1uCjf1sMSD0Rg54O7czPpIh7Csc5aqU6EfAgO1xCsLKZm-8ilFUjvkua3kkHsVZ-8P-fIcE_8_ZQ19ITWE63H0wqp2FUI2UlsdY1z7TsuMeNjDeN8bh_6qaWVJx6O3Wll_OmnQj5VZLIYJpB77Vyzp-9G4oCrJRbjHXpB-2CH7zQQ38x5IBfJ4MvVrhxPC76YhVnumqXbrGnr4tso37S-kpdyygIDUYQa4sBqwbRHlu2xNImornVcqAua9JF0gOF9cicd99wvN3t0dCZUwE44v-jwMXPVcqZrvrezGipCSkNfB6O-4s6TQrztVy1CN5PHML6f5F3w',
+              e: 'AQAB'
+            }
+          const pem = jwkToPem(jwk);
+          let decoded = jwt.verify(token, pem, { algorithms: ['RS256'] });
+          res.send(decoded);
+    
+        }else{
+            const tokemError={message:"token is empty",status:401};
+            
+            next(tokemError);
+            //res.send(tokemError)
         }
-      const pem = jwkToPem(jwk);
-      let decoded = jwt.verify(token, pem, { algorithms: ['RS256'] });
-       res.send(decoded);
+        }catch(err){
+            next(err)
+        }
+       
+        
       
     }catch(err){
         throw new Error(err)
